@@ -118,7 +118,7 @@ rb_node_t *_uncle_get(rb_node_t *node, CHAR *right_side)
 	RETURN uncle;
 }
 
-ENUM _color_CASE {
+ENUM _color_case {
 	RB_LEFT_LEFT,
 	RB_LEFT_RIGHT,
 	RB_RIGHT_LEFT,
@@ -141,7 +141,7 @@ VOID _re_color(rb_tree_t *tree, rb_node_t *node)
 	rb_node_t *grandparent = parent->up;
 	INT uncle_right;
 	INT parent_right;
-	ENUM _color_CASE color_case;
+	ENUM _color_case color_case;
 
 	IF ((tree->root == node) || (node->up->color != RB_BLACK))
 		RETURN;
@@ -163,40 +163,40 @@ VOID _re_color(rb_tree_t *tree, rb_node_t *node)
 		IF (parent_right)
 		{
 			IF (uncle_right)
-				color_CASE = RB_RIGHT_RIGHT;
+				color_case = RB_RIGHT_RIGHT;
 			ELSE
-				color_CASE = RB_LEFT_RIGHT;
+				color_case = RB_LEFT_RIGHT;
 		}
 		ELSE
 		{	IF (uncle_right)
-				color_CASE = RB_RIGHT_LEFT;
+				color_case = RB_RIGHT_LEFT;
 			ELSE
-				color_CASE = RB_LEFT_LEFT;
+				color_case = RB_LEFT_LEFT;
 		}
 	}		
 	do{
-		SWITCH (color_CASE)
+		SWITCH (color_case)
 		{
 			CASE RB_LEFT_LEFT:
 				_rotate_right(tree, grandparent);
 				_swap_colors(grandparent, parent);
-				color_CASE = RB_END;
+				color_case = RB_END;
 				BREAK;
 			CASE RB_LEFT_RIGHT:
 				_rotate_left(tree, parent);
-				color_CASE = RB_LEFT_LEFT;
+				color_case = RB_LEFT_LEFT;
 				BREAK;
 			CASE RB_RIGHT_RIGHT:
 				_rotate_left(tree, grandparent);
 				_swap_colors(grandparent, parent);
-				color_CASE = RB_END;
+				color_case = RB_END;
 				BREAK;
 			default:
 				_rotate_right(tree, parent);
-				color_CASE = RB_RIGHT_RIGHT;
+				color_case = RB_RIGHT_RIGHT;
 				BREAK;
 		}
-	}WHILE(color_CASE != RB_END)
+	}WHILE(color_case != RB_END)
 
 }
 
