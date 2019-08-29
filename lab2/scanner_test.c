@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 extern int yylex();
+extern int line_count;
 
 char *yytext;
 
@@ -15,16 +16,13 @@ int yyerror(char *s) {
 int main() {
     char format[] = "%s %s\n";
     enum token_id code;
-    int line_count = 0;
 
     do {
         code = yylex();
         switch(code) {
-            case 1:
-                line_count++;
-                break;
             case T_ERROR:
-                printf(">>>>>>>>>>>>>>>>>>> %s\n", yytext);
+                printf("%s line %d\n", token_name[code], line_count);
+                return -1;
                 break;
             default:
                 printf("%s %s\n", token_name[code], yytext);

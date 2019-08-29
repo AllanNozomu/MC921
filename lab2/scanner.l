@@ -1,6 +1,7 @@
 %{
 /* header */
 #include "token.h"
+int line_count = 1;
 %}
 
 %%
@@ -9,8 +10,8 @@
 /* blanks */
 %}
 [ \t]  ;
-"//"[^\n]*\n return 1; 
-\n return 1;
+"//"[^\n]*\n line_count++; 
+\n line_count++;
 
 %{
 /* keywords */
