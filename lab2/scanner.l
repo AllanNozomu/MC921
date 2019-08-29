@@ -8,7 +8,9 @@
 %{
 /* blanks */
 %}
-[ \t\n]   ;
+[ \t]  ;
+"//"[^\n]*\n return 1; 
+\n return 1;
 
 %{
 /* keywords */
@@ -74,9 +76,12 @@ error    return(T_ERROR);
 /* identifiers and integers */
 %}
 
-[a-zA-Z][a-zA-Z0-9]*    return(T_ID);
-[0-9]+ return(T_NUM);
-\"([^\\\"]|\\.)*\" return(T_STR);
+[a-zA-Z_][a-zA-Z0-9_]*      return(T_ID);
+0x[a-f0-9]+                 return(T_NUM);
+[0-9]+                      return(T_NUM);
+\'(\\.|[0-9a-zA-Z])\'       return(T_NUM);
+[0-9]+\.[0-9]+              return(T_NUM);
+\"([^\\\"]|\\.)*\"          return(T_STR);
 
 .   return(T_ERROR);
 
