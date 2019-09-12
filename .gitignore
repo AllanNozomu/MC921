@@ -4,3 +4,6 @@ tokens.txt
 corrected.c
 scanner.c
 *.zip
+*.class
+*.interp
+*.tokens
