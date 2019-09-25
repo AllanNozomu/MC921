@@ -1,33 +1,31 @@
 grammar Summer;
 
-root : root line    # RootMultiLine
-    | line          # RootSingleLine
+root : line root    # RootMultiLine
+    | EOF           # RootNone
     ;
 
-line : 'var' ID '=' value ';'               # VarAssign
-     | 'func' ID '(' params ')' expr ';'    # FuncDefinition
-    ;
-
-expr : value '+' value '*' value
+line : 'var' ID '=' exprE ';'               # VarAssign
+    | 'func' ID '(' params ')' exprE ';'    # FuncDefinition
     ;
 
 params : value (',' value)+
     | value ?              
     ;
 
-// exprE : exprT           # ExpreEConversion
-//     | exprE '+' exprT   # ExpreESum
-//     | exprE '-' exprT   # ExpreESub
-//     ;
+exprE : exprT           # ExprEConversion
+    | exprE '+' exprT   # ExprESum
+    | exprE '-' exprT   # ExprESub
+    ;
 
-// exprT : exprF           # ExpreTConversion
-//     | exprT '*' exprF   # ExpreTMul
-//     | exprT '/' exprF   # ExpreTDiv
-//     ;
+exprT : exprF           # ExprTConversion
+    | exprT '*' exprF   # ExprTMul
+    | exprT '/' exprF   # ExprTDiv
+    ;
 
-// exprF : '(' exprE ')'   # ExpreFParen
-//     | value             # ExpreFVal
-//     ;
+exprF : '(' exprE ')'   # ExprFParen
+    | ID '(' params ')' # ExprFFunc
+    | value             # ExprFVal
+    ;
 
 value : NUM             # ValueNum
     | ID                # ValueID

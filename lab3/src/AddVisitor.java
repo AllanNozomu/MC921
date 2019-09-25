@@ -16,9 +16,8 @@ public class AddVisitor extends SummerBaseVisitor<Integer> {
     }
 
     @Override
-    public Integer visitRootSingleLine(SummerParser.RootSingleLineContext ctx)
+    public Integer visitRootNone(SummerParser.RootNoneContext ctx)
     {
-        visit(ctx.line());
         return 0;
     }
 
@@ -27,7 +26,7 @@ public class AddVisitor extends SummerBaseVisitor<Integer> {
     @Override
     public Integer visitVarAssign(SummerParser.VarAssignContext ctx)
     {
-        variables.put(ctx.ID().getText(), visit(ctx.value()));
+        variables.put(ctx.ID().getText(), visit(ctx.exprE()));
         return 0;
     }
 
@@ -38,7 +37,7 @@ public class AddVisitor extends SummerBaseVisitor<Integer> {
         ArrayList<Object> numbers = new ArrayList<>();
         if (ctx.params() != null) {
             for (SummerParser.ValueContext expr : ctx.params().value()) {
-                numbers.add(super.visit(expr));
+                numbers.add(visit(expr));
             }
         }
         return null;
@@ -70,9 +69,59 @@ public class AddVisitor extends SummerBaseVisitor<Integer> {
     // Expressions
     //---------------------------------------------------------
     @Override
+    public Integer visitExprEConversion(SummerParser.ExprEConversionContext ctx){
+        return visit(ctx.exprT());
+    }
+    @Override
+    public Integer visitExprESum(SummerParser.ExprESumContext ctx){
+        return visit(ctx.exprE()) + visit(ctx.exprT());
+    }
+    @Override
+    public Integer visitExprESub(SummerParser.ExprESubContext ctx){
+        return visit(ctx.exprE()) + visit(ctx.exprT());
+    }
+
+    @Override
+    public Integer visitExprTConversion(SummerParser.ExprTConversionContext ctx){
+        return visit(ctx.exprF());
+    }
+    @Override
+    public Integer visitExprTMul(SummerParser.ExprTMulContext ctx){
+        return visit(ctx.exprT()) + visit(ctx.exprF());
+    }
+    @Override
+    public Integer visitExprTDiv(SummerParser.ExprTDivContext ctx){
+        return visit(ctx.exprT()) + visit(ctx.exprF());
+    }
+
+    @Override
+    public Integer visitExprFParen(SummerParser.ExprFParenContext ctx){
+        return visit(ctx.exprE());
+    }
+    @Override
+    public Integer visitExprFVal(SummerParser.ExprFValContext ctx){
+        return visit(ctx.value());
+    }
+    @Override
+    public Integer visitExprFFunc(SummerParser.ExprFFuncContext ctx){
+        ArrayList<Object> numbers = new ArrayList<>();
+        if (ctx.params() != null) {
+            for (SummerParser.ValueContext expr : ctx.params().value()) {
+                numbers.add(visit(expr));
+            }
+        }
+        return null; 
+    }
+
+
+
+    // Values
+    //---------------------------------------------------------
+    @Override
     public Integer visitValueID(SummerParser.ValueIDContext ctx)
     {
-        return Integer.valueOf(ctx.ID().getText());
+        ctx.ID().getText();
+        return 0;
     }
 
     @Override
