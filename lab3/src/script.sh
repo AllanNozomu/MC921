@@ -18,8 +18,8 @@ javac *.java
   java org.antlr.v4.gui.TestRig Summer root -gui < ../tests/test${1}.sm 
 
   echo "Verificando saida"
-  java MyParser < test${i}.sm > temp_res.txt
-  diff ../tests/result${i}.txt temp_res.txt
+  java MyParser < ../tests/test${1}.sm > temp_res.txt
+  diff ../tests/result${1}.txt temp_res.txt
   echo "==================================================="
 # done
 rm temp_res.txt
