@@ -6,6 +6,12 @@ scanner.c
 *.zip
 *.class
 *.interp
-*.tokens
 *.swp
+
+# Lab 3 specific
+SummerBaseVisitor.java
+SummerLexer.java
+SummerParser.java
+SummerVisitor.java
+*.tokens
 .antlr/
