@@ -8,8 +8,14 @@ line : 'var' ID '=' exprE ';'               # VarAssign
     | 'func' ID '(' params ')' exprE ';'    # FuncDefinition
     ;
 
-params : value (',' value)+
-    | value ?              
+params : ID ',' params # ParamsMulti
+    | ID               # ParamsID
+    |                  # ParamsNone
+    ;
+
+paramsCall : value ',' paramsCall # ParamsCallMulti
+    | value                       # ParamsCallID
+    |                             # ParamsCallNone
     ;
 
 exprE : exprT           # ExprEConversion
@@ -22,9 +28,9 @@ exprT : exprF           # ExprTConversion
     | exprT '/' exprF   # ExprTDiv
     ;
 
-exprF : '(' exprE ')'   # ExprFParen
-    | ID '(' params ')' # ExprFFunc
-    | value             # ExprFVal
+exprF : '(' exprE ')'       # ExprFParen
+    | ID '(' paramsCall ')' # ExprFFunc
+    | value                 # ExprFVal
     ;
 
 value : NUM             # ValueNum
