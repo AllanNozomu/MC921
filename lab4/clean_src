@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "Removendo .class"
+rm src/*.class
+echo "Removendo .tokens"
+rm src/*.tokens
+echo "Removendo .interp"
+rm src/*.interp
