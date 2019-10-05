@@ -15,3 +15,8 @@ SummerParser.java
 SummerVisitor.java
 *.tokens
 .antlr/
+
+# Lab 4
+*.s
+*.ll
+*.out
