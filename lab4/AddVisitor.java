@@ -13,30 +13,6 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     String mainBody = "";
     int counter = 1;
 
-    // public String assignSimpleValue(String key, int value) {
-    //     System.out.println();
-    // }
-
-    // public String assignVariableValue(String key, String value) {
-
-    // }
-
-    // public String assignVariableFunction(String key, String value){
-
-    // }
-
-    // @Override
-    // public Integer visitCode(GramaticaParser.CodeContext ctx)
-    // {
-    //     visit(ctx.root());
-    //     System.out.println(declarations);
-
-    //     System.out.println("define i32 @start(i32){");
-    //     System.out.println(mainBody);
-    //     System.out.println("}");
-    //     return 0;
-    // }
-
     // Roots
     //---------------------------------------------------------
     @Override
@@ -47,19 +23,13 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
         return 0;
     }
 
-    @Override
-    public Integer visitRootNone(GramaticaParser.RootNoneContext ctx)
-    {
-        return 0;
-    }
-
     // Lines
     //---------------------------------------------------------
     @Override
     public Integer visitVarAssign(GramaticaParser.VarAssignContext ctx)
     {
         String varName = ctx.ID().getText();
-        System.out.print("@" + varName + "= global i32 ");
+        System.out.println("@" + varName + " = global i32 0;");
 
         if (variables.contains(varName))
             System.out.println("Symbol already declared: " + varName);
@@ -67,10 +37,9 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
             System.out.println("Symbol already declared: " + varName);
         else
             variables.add(ctx.ID().getText());
-
-        visit(ctx.exprE());
-        System.out.println(";");
         
+        int tempName = visit(ctx.exprE());
+        mainBody += "store i32 %v" + tempName  + ", i32* @" + varName + ";\n";
         return 0;
     }
 
@@ -148,7 +117,10 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     }
     @Override
     public Integer visitExprESum(GramaticaParser.ExprESumContext ctx){
-        return visit(ctx.exprE()) + visit(ctx.exprT());
+        int tempNameE = visit(ctx.exprE());
+        int tempNameT = visit(ctx.exprT());
+        mainBody += "%v" + this.counter + " = add i32 %v" + tempNameE + ", %v" + tempNameT + ";\n";
+        return this.counter++;
     }
     @Override
     public Integer visitExprESub(GramaticaParser.ExprESubContext ctx){
@@ -162,7 +134,10 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     }
     @Override
     public Integer visitExprTMul(GramaticaParser.ExprTMulContext ctx){
-        return visit(ctx.exprT()) + visit(ctx.exprF());
+        int tempNameT = visit(ctx.exprT());
+        int tempNameF = visit(ctx.exprF());
+        mainBody += "%v" + this.counter + " = mul i32 %v" + tempNameT + ", %v" + tempNameF + ";\n";
+        return this.counter++;
     }
     @Override
     public Integer visitExprTDiv(GramaticaParser.ExprTDivContext ctx){
@@ -176,7 +151,10 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     }
     @Override
     public Integer visitExprFVal(GramaticaParser.ExprFValContext ctx){
-        return visit(ctx.value());
+        mainBody += "%v" + this.counter + " = add i32 0 ,";
+        visit(ctx.value());
+        mainBody += ";\n";
+        return this.counter++;
     }
 
     @Override
@@ -208,14 +186,13 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
           else if (!variables.contains(varName))
               System.out.println("Symbol undeclared: " + varName);
         }
-        System.out.println(ctx.ID().getText());
         return 0;
     }
 
     @Override
     public Integer visitValueNum(GramaticaParser.ValueNumContext ctx)
     {
-        System.out.println(ctx.NUM().getText());
+        mainBody += ctx.NUM().getText();
         return Integer.valueOf(ctx.NUM().getText());
     }
 }

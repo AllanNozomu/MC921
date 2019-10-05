@@ -1,2 +1,2 @@
-var sm_main = 5;
-    
+var b = 3;
+var sm_main = 5 + 4 * 3 + 2;
