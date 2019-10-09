@@ -16,7 +16,7 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
 
     HashSet<String> variables = new HashSet<String>(); 
     HashSet<String> functions = new HashSet<String>(); 
-    HashMap<String, Integer> functionsIds = new HashMap<String, Integer>();
+    HashMap<String, String> functionsIds = new HashMap<String, String>();
     HashMap<String, ArrayList<String>> params = new HashMap<String, ArrayList<String>>();
     ArrayList<String> callParams = new ArrayList<String>();
 
@@ -84,8 +84,8 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
         params.put(currFunc, new ArrayList<String>());
         visit(ctx.params());
 
-        functionsIds.put(funcName, functionsIds.size() + 1);
-        System.out.println("define i32 @f" + functionsIds.get(funcName) + "(" + paramsToString(params.get(currFunc)) + "){");
+        functionsIds.put(funcName, funcName);
+        System.out.println("define i32 @f_" + functionsIds.get(funcName) + "(" + paramsToString(params.get(currFunc)) + "){");
         
         Integer res = visit(ctx.exprE());
 
@@ -174,7 +174,7 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
         int tempNameE = visit(ctx.exprE());
         int tempNameT = visit(ctx.exprT());
         if (currFunc != ""){
-            System.out.print("  %l" + this.counter + " = add i32 %l" + tempNameE + ", %l" + tempNameT + "\n");
+            System.out.print("  %l" + this.localCounter + " = add i32 %l" + tempNameE + ", %l" + tempNameT + "\n");
             return this.localCounter++;
         } else {
             mainBody += "%v" + this.counter + " = add i32 %v" + tempNameE + ", %v" + tempNameT + "\n";
@@ -196,7 +196,7 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
         int tempNameT = visit(ctx.exprT());
         int tempNameF = visit(ctx.exprF());
         if (currFunc != ""){
-            System.out.print("  %l" + this.counter + " = mul i32 %l" + tempNameT + ", %l" + tempNameF + "\n");
+            System.out.print("  %l" + this.localCounter + " = mul i32 %l" + tempNameT + ", %l" + tempNameF + "\n");
             return this.localCounter++;
         } else {
             mainBody += "%v" + this.counter + " = mul i32 %v" + tempNameT + ", %v" + tempNameF + "\n";
@@ -216,7 +216,7 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     @Override
     public Integer visitExprFVal(GramaticaParser.ExprFValContext ctx){
         if (currFunc != ""){
-            System.out.print("  %l" + this.counter + " = add i32 0,");
+            System.out.print("  %l" + this.localCounter + " = add i32 0,");
             visit(ctx.value());
             System.out.print("\n");
 
@@ -260,14 +260,14 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
             System.out.println("Symbol undeclared: " + funcName);
 
         if (currFunc != ""){
-            System.out.print("  %l" + this.counter + " = call i32 @f" + functionsIds.get(funcName));
+            System.out.print("  %l" + this.localCounter + " = call i32 @f_" + functionsIds.get(funcName));
             Integer paramCount = visit(ctx.paramsCall());
             mainBody += "(" + callParamsToString(callParams) + ")\n";
             if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
                 System.out.println("Bad argument count: " + funcName);
             return this.localCounter++;
         } else {
-            mainBody += "%v" + this.counter + " = call i32 @f" + functionsIds.get(funcName);
+            mainBody += "%v" + this.counter + " = call i32 @f_" + functionsIds.get(funcName);
            Integer paramCount = visit(ctx.paramsCall());
            mainBody += "(" + callParamsToString(callParams) + ")\n";
             if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
