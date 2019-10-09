@@ -224,18 +224,32 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         return visit(ctx.exprE());
     }
     @Override
-    public Integer visitExprFVal(GramaticaParser.ExprFValContext ctx) {
-        if (currFunc != "") {
-            System.out.print("  %l" + this.localCounter + " = add i32 0,");
-            visit(ctx.value());
-            System.out.print("\n");
+    public Integer visitExprFID(GramaticaParser.ExprFIDContext ctx) {
+        String varName = ctx.ID().getText();
 
+        if (currFunc != "") {
+            Integer localIndex = this.params.get(currFunc).indexOf(varName);
+            if (localIndex < 0){
+                System.out.println("  %l" + this.localCounter++ + " = load i32, i32* @" + varName);
+                System.out.println("  %l" + this.localCounter + " = add i32 0, %l" + (this.localCounter - 1));
+            } else {
+                System.out.println("  %l" + this.localCounter + " = add i32 0, %p" + localIndex);
+            }
             return this.localCounter++;
         } else {
-            mainBody += "%v" + this.counter + " = add i32 0,";
-            visit(ctx.value());
-            mainBody += "\n";
+            mainBody += "%v" + this.counter++ + " = load i32, i32* @" + varName + "\n";
+            mainBody += "%v" + this.counter + " = add i32 0, %v" + (this.counter - 1);
+            return this.counter++;
+        }
+    }
 
+    @Override
+    public Integer visitExprFNum(GramaticaParser.ExprFNumContext ctx) {
+        if (currFunc != "") {
+            System.out.println("  %l" + this.localCounter + " = add i32 0 ," + ctx.NUM().getText());
+            return this.localCounter++;
+        } else {
+            mainBody += "%v" + this.counter + " = add i32 0, " + ctx.NUM().getText() + "\n";
             return this.counter++;
         }
     }
@@ -284,30 +298,5 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
                 System.out.println("Bad argument count: " + funcName);
             return this.counter++;
         }
-    }
-
-
-
-    // Values
-    //---------------------------------------------------------
-    @Override
-    public Integer visitValueID(GramaticaParser.ValueIDContext ctx) {
-        String varName = ctx.ID().getText();
-
-        if (currFunc == "" || !params.get(currFunc).contains(varName)) {
-            if (functions.contains(varName))
-                System.out.println("Bad used symbol: " + varName);
-            else if (!variables.contains(varName))
-                System.out.println("Symbol undeclared: " + varName);
-        } else {
-            System.out.print(" %p" + params.get(currFunc).indexOf(varName));
-        }
-        return 0;
-    }
-
-    @Override
-    public Integer visitValueNum(GramaticaParser.ValueNumContext ctx) {
-        mainBody += ctx.NUM().getText();
-        return Integer.valueOf(ctx.NUM().getText());
     }
 }

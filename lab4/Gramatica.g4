@@ -34,11 +34,8 @@ exprT : exprF           # ExprTConversion
 
 exprF : '(' exprE ')'       # ExprFParen
     | ID '(' paramsCall ')' # ExprFFunc
-    | value                 # ExprFVal
-    ;
-
-value : NUM             # ValueNum
-    | ID                # ValueID
+    | NUM                   # ExprFNum
+    | ID                    # ExprFID
     ;
     
 NUM : [0-9]+
