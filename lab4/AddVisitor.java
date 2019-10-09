@@ -5,17 +5,26 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     
+    private static boolean isNumeric(String strNum) {
+        try {
+            Integer d = Integer.parseInt(strNum);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
     HashSet<String> variables = new HashSet<String>(); 
     HashSet<String> functions = new HashSet<String>(); 
     HashMap<String, Integer> functionsIds = new HashMap<String, Integer>();
     HashMap<String, ArrayList<String>> params = new HashMap<String, ArrayList<String>>();
     ArrayList<String> callParams = new ArrayList<String>();
-    
 
     String currFunc = "";
     String declarations = "";
     String mainBody = "";
     int counter = 1;
+    int localCounter = 1;
 
     // Roots
     //---------------------------------------------------------
@@ -141,14 +150,14 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
 
     @Override
     public Integer visitParamValueNum(GramaticaParser.ParamValueNumContext ctx){
-        callParams.push(ctx.NUM().getText()));
+        callParams.add(ctx.NUM().getText());
         
         return 0;
     }
 
     @Override
     public Integer visitParamValueID(GramaticaParser.ParamValueIDContext ctx){
-        callParams.push(ctx.ID().getText()));
+        callParams.add(ctx.ID().getText());
 
         return 0;
     }
@@ -163,8 +172,13 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     public Integer visitExprESum(GramaticaParser.ExprESumContext ctx){
         int tempNameE = visit(ctx.exprE());
         int tempNameT = visit(ctx.exprT());
-        mainBody += "%v" + this.counter + " = add i32 %v" + tempNameE + ", %v" + tempNameT + ";\n";
-        return this.counter++;
+        if (currFunc != ""){
+            System.out.print("%l" + this.counter + " = add i32 %l" + tempNameE + ", %l" + tempNameT + "\n");
+            return this.localCounter++;
+        } else {
+            mainBody += "%v" + this.counter + " = add i32 %v" + tempNameE + ", %v" + tempNameT + "\n";
+            return this.counter++;
+        }
     }
     @Override
     public Integer visitExprESub(GramaticaParser.ExprESubContext ctx){
@@ -180,8 +194,13 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     public Integer visitExprTMul(GramaticaParser.ExprTMulContext ctx){
         int tempNameT = visit(ctx.exprT());
         int tempNameF = visit(ctx.exprF());
-        mainBody += "%v" + this.counter + " = mul i32 %v" + tempNameT + ", %v" + tempNameF + ";\n";
-        return this.counter++;
+        if (currFunc != ""){
+            System.out.print("%l" + this.counter + " = mul i32 %l" + tempNameT + ", %l" + tempNameF + "\n");
+            return this.localCounter++;
+        } else {
+            mainBody += "%v" + this.counter + " = mul i32 %v" + tempNameT + ", %v" + tempNameF + "\n";
+            return this.counter++;
+        }
     }
     @Override
     public Integer visitExprTDiv(GramaticaParser.ExprTDivContext ctx){
@@ -195,33 +214,73 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     }
     @Override
     public Integer visitExprFVal(GramaticaParser.ExprFValContext ctx){
-        mainBody += "%v" + this.counter + " = add i32 0 ,";
-        visit(ctx.value());
-        mainBody += ";\n";
-        return this.counter++;
+        if (currFunc != ""){
+            System.out.print("%l" + this.counter + " = add i32 0,");
+            visit(ctx.value());
+            System.out.print("\n");
+
+            return this.localCounter++;
+        } else {
+            mainBody += "%v" + this.counter + " = add i32 0,";
+            visit(ctx.value());
+            mainBody += "\n";
+        
+            return this.counter++;
+        }
+    }
+
+    public String callParamsToString(ArrayList<String> callParams){
+        String res = "";
+
+        for (String param : callParams){
+            if (isNumeric(param)) {
+                res += " i32 " + param;
+            } else {
+                Integer localIndex = this.params.get(currFunc).indexOf(param);
+                if (localIndex >= 0) {
+                    res += " i32 %l" + localIndex;
+                } else {
+                    // TODO: Global variables with store
+                }
+            }
+        }
+        return res.trim();
     }
 
     @Override
     public Integer visitExprFFunc(GramaticaParser.ExprFFuncContext ctx){
         String funcName = ctx.ID().getText();
+        
+        callParams = new ArrayList<String>();
 
         if (variables.contains(funcName))
           System.out.println("Bad used symbol: " + funcName);
         else if (!functions.contains(funcName))
             System.out.println("Symbol undeclared: " + funcName);
 
-        Integer paramCount = visit(ctx.paramsCall());
-        if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
-            System.out.println("Bad argument count: " + funcName);
-
-        return 0; 
+        if (currFunc != ""){
+            System.out.print("%l" + this.counter + " = call i32 @f" + functionsIds.get(funcName));
+            Integer paramCount = visit(ctx.paramsCall());
+            mainBody += "(" + callParamsToString(callParams) + ")\n";
+            if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
+                System.out.println("Bad argument count: " + funcName);
+            return this.localCounter++;
+        } else {
+            mainBody += "%v" + this.counter + " = call i32 @f" + functionsIds.get(funcName);
+           Integer paramCount = visit(ctx.paramsCall());
+           mainBody += "(" + callParamsToString(callParams) + ")\n";
+            if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
+                System.out.println("Bad argument count: " + funcName); 
+            return this.counter++;
+        }  
     }
+
+
 
     // Values
     //---------------------------------------------------------
     @Override
-    public Integer visitValueID(GramaticaParser.ValueIDContext ctx)
-    {
+    public Integer visitValueID(GramaticaParser.ValueIDContext ctx){
         String varName = ctx.ID().getText(); 
 
         if (currFunc == "" || !params.get(currFunc).contains(varName)){
@@ -229,13 +288,14 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
               System.out.println("Bad used symbol: " + varName);
           else if (!variables.contains(varName))
               System.out.println("Symbol undeclared: " + varName);
+        } else {
+            System.out.print(" %p" + params.get(currFunc).indexOf(varName));
         }
         return 0;
     }
 
     @Override
-    public Integer visitValueNum(GramaticaParser.ValueNumContext ctx)
-    {
+    public Integer visitValueNum(GramaticaParser.ValueNumContext ctx){
         mainBody += ctx.NUM().getText();
         return Integer.valueOf(ctx.NUM().getText());
     }
