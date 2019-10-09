@@ -23,6 +23,16 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
         return 0;
     }
 
+    @Override
+    public Integer visitRootNone(GramaticaParser.RootNoneContext ctx)
+    {
+        System.out.println("\ndefine void @start() {");
+        System.out.print(mainBody);
+        System.out.println("ret void");
+        System.out.println("}");
+        return 0;
+    }
+
     // Lines
     //---------------------------------------------------------
     @Override
