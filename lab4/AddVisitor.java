@@ -177,7 +177,15 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
     }
     @Override
     public Integer visitExprESub(GramaticaParser.ExprESubContext ctx) {
-        return visit(ctx.exprE()) + visit(ctx.exprT());
+        int tempNameE = visit(ctx.exprE());
+        int tempNameT = visit(ctx.exprT());
+        if (currFunc != "") {
+            System.out.print("  %l" + this.localCounter + " = sub i32 %l" + tempNameE + ", %l" + tempNameT + "\n");
+            return this.localCounter++;
+        } else {
+            mainBody += "%v" + this.counter + " = sub i32 %v" + tempNameE + ", %v" + tempNameT + "\n";
+            return this.counter++;
+        }
     }
 
     // T
@@ -199,7 +207,15 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
     }
     @Override
     public Integer visitExprTDiv(GramaticaParser.ExprTDivContext ctx) {
-        return visit(ctx.exprT()) + visit(ctx.exprF());
+        int tempNameT = visit(ctx.exprT());
+        int tempNameF = visit(ctx.exprF());
+        if (currFunc != "") {
+            System.out.print("  %l" + this.localCounter + " = div i32 %l" + tempNameT + ", %l" + tempNameF + "\n");
+            return this.localCounter++;
+        } else {
+            mainBody += "%v" + this.counter + " = div i32 %v" + tempNameT + ", %v" + tempNameF + "\n";
+            return this.counter++;
+        }
     }
 
     // F
