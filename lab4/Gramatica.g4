@@ -13,9 +13,13 @@ params : ID ',' params # ParamsMulti
     |                  # ParamsNone
     ;
 
-paramsCall : value ',' paramsCall # ParamsCallMulti
-    | value                       # ParamsCallID
+paramsCall : paramValue ',' paramsCall # ParamsCallMulti
+    | paramValue                       # ParamsCallSingle
     |                             # ParamsCallNone
+    ;
+
+paramValue : NUM        # paramValueNum
+    | ID                # paramValueID
     ;
 
 exprE : exprT           # ExprEConversion

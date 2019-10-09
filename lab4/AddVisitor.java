@@ -100,16 +100,26 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
          return 0;
      }
 
+    String paramsToString(ArrayList<String> parameters){
+        String res = "";
+        for (int i = 0; i < parameters.size(); ++i){
+            res += " i32 %p" + i;
+        }
+        return res.trim();
+     }
+
     // Call
      @Override
      public Integer visitParamsCallMulti(GramaticaParser.ParamsCallMultiContext ctx)
      {
+         visit(ctx.paramValue());
          return 1 + visit(ctx.paramsCall());
      }
 
      @Override
-     public Integer visitParamsCallID(GramaticaParser.ParamsCallIDContext ctx)
+     public Integer visitParamsCallSingle(GramaticaParser.ParamsCallSingleContext ctx)
      {
+         visit(ctx.paramValue());
          return 1;
      }
      
@@ -118,6 +128,20 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
      {
          return 0;
      }
+
+    @Override
+    public Integer visitParamValueNum(GramaticaParser.ParamValueNumContext ctx){
+        callParams.push(ctx.NUM().getText()));
+        
+        return 0;
+    }
+
+    @Override
+    public Integer visitParamValueID(GramaticaParser.ParamValueIDContext ctx){
+        callParams.push(ctx.ID().getText()));
+
+        return 0;
+    }
 
     // Expressions
     //---------------------------------------------------------
