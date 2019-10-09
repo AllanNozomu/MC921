@@ -7,7 +7,11 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
     
     HashSet<String> variables = new HashSet<String>(); 
     HashSet<String> functions = new HashSet<String>(); 
-    HashMap<String, HashSet<String>> params = new HashMap<String, HashSet<String>>();
+    HashMap<String, Integer> functionsIds = new HashMap<String, Integer>();
+    HashMap<String, ArrayList<String>> params = new HashMap<String, ArrayList<String>>();
+    ArrayList<String> callParams = new ArrayList<String>();
+    
+
     String currFunc = "";
     String declarations = "";
     String mainBody = "";
@@ -67,11 +71,17 @@ public class AddVisitor extends GramaticaBaseVisitor<Integer> {
             functions.add(currFunc);
         }
 
-        params.put(currFunc, new HashSet<String>());
+        params.put(currFunc, new ArrayList<String>());
         visit(ctx.params());
 
-        visit(ctx.exprE());
+        functionsIds.put(funcName, functionsIds.size() + 1);
+        System.out.println("define i32 @f" + functionsIds.get(funcName) + "(" + paramsToString(params.get(currFunc)) + "){");
+        
+        Integer res = visit(ctx.exprE());
+
         currFunc = "";
+        System.out.println("ret i32 %l" + res);
+        System.out.println("}");
 
         return 0;
     }
