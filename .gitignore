@@ -20,3 +20,6 @@ SummerVisitor.java
 *.s
 *.ll
 *.out
+GramaticaBaseVisitor.java
+GramaticaParser.java
+GramaticaVisitor.java
