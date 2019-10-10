@@ -13,9 +13,9 @@ echo "#################################################"
 i=$1
 # java org.antlr.v4.gui.TestRig Gramatica root -tokens < ./tests/test${i}.sm
 # java org.antlr.v4.gui.TestRig Gramatica root -tree < ./tests/test${i}.sm
-java org.antlr.v4.gui.TestRig Gramatica root -gui < ./tests/test${i}.sm > /dev/null &
+# java org.antlr.v4.gui.TestRig Gramatica root -gui < ./tests/test${i}.sm > /dev/null &
 
-# for i in $(seq 0 9); do
+for i in $(seq 0 9); do
     echo "TESTANDO ${i}========================================="
     java MyParser < tests/test${i}.sm > test${i}.ll
     llc test${i}.ll
@@ -24,5 +24,5 @@ java org.antlr.v4.gui.TestRig Gramatica root -gui < ./tests/test${i}.sm > /dev/n
     diff test${i}.out tests/test${i}.res
     # rm test${i}.out test${i}.ll test${i}.s
     echo "==================================================="
-# done
-cat test${i}.ll
+done
+# cat test${i}.ll
