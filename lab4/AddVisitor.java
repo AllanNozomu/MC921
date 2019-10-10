@@ -16,12 +16,8 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
 
     HashSet < String > variables = new HashSet < String > ();
     HashSet < String > functions = new HashSet < String > ();
-    HashMap < String,
-    String > functionsIds = new HashMap < String,
-    String > ();
-    HashMap < String,
-    ArrayList < String >> params = new HashMap < String,
-    ArrayList < String >> ();
+    HashMap < String, String > functionsIds = new HashMap < String, String > ();
+    HashMap < String, ArrayList < String >> params = new HashMap < String, ArrayList < String >> ();
     ArrayList < String > callParams = new ArrayList < String > ();
 
     String currFunc = "";
@@ -90,7 +86,7 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         Integer res = visit(ctx.exprE());
 
         currFunc = "";
-        System.out.println("ret i32 %l" + res);
+        System.out.println("  ret i32 %l" + res);
         System.out.println("}");
 
         return 0;
@@ -120,9 +116,9 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
     String paramsToString(ArrayList < String > parameters) {
         String res = "";
         for (int i = 0; i < parameters.size(); ++i) {
-            res += " i32 %p" + i;
+            res += ", i32 %p" + i;
         }
-        return res.trim();
+        return res.trim().substring(1);
     }
 
     // Call
@@ -210,10 +206,10 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         int tempNameT = visit(ctx.exprT());
         int tempNameF = visit(ctx.exprF());
         if (currFunc != "") {
-            System.out.print("  %l" + this.localCounter + " = div i32 %l" + tempNameT + ", %l" + tempNameF + "\n");
+            System.out.print("  %l" + this.localCounter + " = sdiv i32 %l" + tempNameT + ", %l" + tempNameF + "\n");
             return this.localCounter++;
         } else {
-            mainBody += "%v" + this.counter + " = div i32 %v" + tempNameT + ", %v" + tempNameF + "\n";
+            mainBody += "%v" + this.counter + " = sdiv i32 %v" + tempNameT + ", %v" + tempNameF + "\n";
             return this.counter++;
         }
     }
@@ -230,15 +226,13 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         if (currFunc != "") {
             Integer localIndex = this.params.get(currFunc).indexOf(varName);
             if (localIndex < 0){
-                System.out.println("  %l" + this.localCounter++ + " = load i32, i32* @" + varName);
-                System.out.println("  %l" + this.localCounter + " = add i32 0, %l" + (this.localCounter - 1));
+                System.out.println("  %l" + this.localCounter + " = load i32, i32* @" + varName);
             } else {
                 System.out.println("  %l" + this.localCounter + " = add i32 0, %p" + localIndex);
             }
             return this.localCounter++;
         } else {
-            mainBody += "%v" + this.counter++ + " = load i32, i32* @" + varName + "\n";
-            mainBody += "%v" + this.counter + " = add i32 0, %v" + (this.counter - 1);
+            mainBody += "%v" + this.counter + " = load i32, i32* @" + varName + "\n";
             return this.counter++;
         }
     }
@@ -254,22 +248,28 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         }
     }
 
-    public String callParamsToString(ArrayList < String > callParams) {
+    public String evalParamsToString(ArrayList < String > callParams) {
         String res = "";
 
         for (String param: callParams) {
             if (isNumeric(param)) {
-                res += " i32 " + param;
+                res += ", i32 " + param;
             } else {
-                Integer localIndex = this.params.get(currFunc).indexOf(param);
+                Integer localIndex = currFunc == "" ? -1 : this.params.get(currFunc).indexOf(param);
                 if (localIndex >= 0) {
-                    res += " i32 %l" + localIndex;
+                    res += ", i32 %p" + localIndex;
                 } else {
-                    // TODO: Global variables with store
+                    if (currFunc == ""){
+                        mainBody += "%v" +  counter + " = load i32 , i32 * @" + param + "\n";
+                        res += ", i32 %v" + counter++;
+                    } else {
+                        System.out.println("  %l"+ localCounter + " = load i32 , i32 * @" + param);
+                        res += ", i32 %l" + localCounter++;
+                    }
                 }
             }
         }
-        return res.trim();
+        return res.trim().substring(1);
     }
 
     @Override
@@ -284,16 +284,20 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
             System.out.println("Symbol undeclared: " + funcName);
 
         if (currFunc != "") {
-            System.out.print("  %l" + this.localCounter + " = call i32 @f_" + functionsIds.get(funcName));
             Integer paramCount = visit(ctx.paramsCall());
-            mainBody += "(" + callParamsToString(callParams) + ")\n";
+            String evaluatedParams = evalParamsToString(callParams);
+
+            System.out.print("  %l" + this.localCounter + " = call i32 @f_" + functionsIds.get(funcName));
+            System.out.println("(" + evaluatedParams + ")\n");
             if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
                 System.out.println("Bad argument count: " + funcName);
             return this.localCounter++;
         } else {
-            mainBody += "%v" + this.counter + " = call i32 @f_" + functionsIds.get(funcName);
             Integer paramCount = visit(ctx.paramsCall());
-            mainBody += "(" + callParamsToString(callParams) + ")\n";
+            String evaluatedParams = evalParamsToString(callParams);
+
+            mainBody += "%v" + this.counter + " = call i32 @f_" + functionsIds.get(funcName);
+            mainBody += "(" + evaluatedParams + ")\n";
             if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
                 System.out.println("Bad argument count: " + funcName);
             return this.counter++;
