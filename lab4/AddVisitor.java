@@ -20,11 +20,11 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
     HashMap < String, ArrayList < String >> params = new HashMap < String, ArrayList < String >> ();
     ArrayList < String > callParams = new ArrayList < String > ();
     StringBuilder resBuilder = new StringBuilder();
+    StringBuilder mainBodyBuilder = new StringBuilder();
     
 
     String currFunc = "";
     String declarations = "";
-    String mainBody = "";
     int counter = 1;
     int localCounter = 1;
 
@@ -39,18 +39,13 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
 
     @Override
     public Integer visitRootNone(GramaticaParser.RootNoneContext ctx) {
-
         System.out.println(resBuilder);
-        
-        // resBuilder.append("\ndefine void @start() {");
-        // mainBody = mainBody.replaceAll("\n", "\n  ");
-        // resBuilder.append("  " + mainBody);
-        // resBuilder.append("ret void\n}");
 
         System.out.println("\ndefine void @start() {");
-        mainBody = mainBody.replaceAll("\n", "\n  ");
+
+        String mainBody = mainBodyBuilder.toString().replaceAll("\n", "\n  ");
         System.out.println("  " + mainBody);
-        System.out.println("ret void\n}");
+        System.out.println("  ret void\n}");
         
         return 0;
     }
@@ -68,7 +63,7 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
             variables.add(ctx.ID().getText());
 
         int tempName = visit(ctx.exprE());
-        mainBody += AddVisitor.getAssignVar(tempName + "", varName) + "\n";
+        mainBodyBuilder.append(AddVisitor.getAssignVar(tempName + "", varName) + "\n");
         
         return 0;
     }
@@ -88,14 +83,11 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         visit(ctx.params());
 
         functionsIds.put(funcName, funcName);
-        // System.out.println("define i32 @f_" + functionsIds.get(funcName) + "(" + paramsToString(params.get(currFunc)) + "){");
         resBuilder.append(AddVisitor.getDeclareFunc(functionsIds.get(funcName), params.get(currFunc)));
         resBuilder.append("\n");
         Integer res = visit(ctx.exprE());
 
         currFunc = "";
-        // System.out.println("  ret i32 %l" + res);
-        // System.out.println("}");
         resBuilder.append(AddVisitor.getFuncReturn(res));
         resBuilder.append("\n");
         return 0;
@@ -173,14 +165,12 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         int tempNameE = visit(ctx.exprE());
         int tempNameT = visit(ctx.exprT());
         if (currFunc != "") {
-            // System.out.print("  %l" + this.localCounter + " = add i32 %l" + tempNameE + ", %l" + tempNameT + "\n");
             resBuilder.append(AddVisitor.getAddOperation("  %l" + this.localCounter, " %l" + tempNameE, " %l" + tempNameT));
             resBuilder.append("\n");
             return this.localCounter++;
         } else {
-            // mainBody += "%v" + this.counter + " = add i32 %v" + tempNameE + ", %v" + tempNameT + "\n";
-            mainBody += AddVisitor.getAddOperation("%v" + this.counter, "%v" + tempNameE, "%v" + tempNameT);
-            mainBody += "\n";
+            mainBodyBuilder.append(AddVisitor.getAddOperation("%v" + this.counter, "%v" + tempNameE, "%v" + tempNameT));
+            mainBodyBuilder.append("\n");
             return this.counter++;
         }
     }
@@ -189,14 +179,12 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         int tempNameE = visit(ctx.exprE());
         int tempNameT = visit(ctx.exprT());
         if (currFunc != "") {
-            // System.out.print("  %l" + this.localCounter + " = sub i32 %l" + tempNameE + ", %l" + tempNameT + "\n");
             resBuilder.append(AddVisitor.getSubOperation("  %l" + this.localCounter, "%l" + tempNameE, "%l" + tempNameT));
             resBuilder.append("\n");
             return this.localCounter++;
         } else {
-            // mainBody += "%v" + this.counter + " = sub i32 %v" + tempNameE + ", %v" + tempNameT + "\n";
-            mainBody += AddVisitor.getSubOperation("%v" + this.counter, "%v" + tempNameE, "%v" + tempNameT);
-            mainBody += "\n";
+            mainBodyBuilder.append(AddVisitor.getSubOperation("%v" + this.counter, "%v" + tempNameE, "%v" + tempNameT));
+            mainBodyBuilder.append("\n");
             return this.counter++;
         }
     }
@@ -211,14 +199,12 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         int tempNameT = visit(ctx.exprT());
         int tempNameF = visit(ctx.exprF());
         if (currFunc != "") {
-            // System.out.print("  %l" + this.localCounter + " = mul i32 %l" + tempNameT + ", %l" + tempNameF + "\n");
             resBuilder.append(AddVisitor.getMulOperation("  %l" + this.localCounter, "%l" + tempNameT, "%l" + tempNameF));
             resBuilder.append("\n");
             return this.localCounter++;
         } else {
-            // mainBody += "%v" + this.counter + " = mul i32 %v" + tempNameT + ", %v" + tempNameF + "\n";
-            mainBody += AddVisitor.getMulOperation("%v" + this.counter, "%v" + tempNameT, "%v" + tempNameF);
-            mainBody += "\n";
+            mainBodyBuilder.append(AddVisitor.getMulOperation("%v" + this.counter, "%v" + tempNameT, "%v" + tempNameF));
+            mainBodyBuilder.append("\n");
             return this.counter++;
         }
     }
@@ -227,14 +213,12 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         int tempNameT = visit(ctx.exprT());
         int tempNameF = visit(ctx.exprF());
         if (currFunc != "") {
-            // System.out.print("  %l" + this.localCounter + " = sdiv i32 %l" + tempNameT + ", %l" + tempNameF + "\n");
             resBuilder.append(AddVisitor.getSdivOperation("  %l" + this.localCounter, "%l" + tempNameT, "%l" + tempNameF));
             resBuilder.append("\n");
             return this.localCounter++;
         } else {
-            // mainBody += "%v" + this.counter + " = sdiv i32 %v" + tempNameT + ", %v" + tempNameF + "\n";
-            mainBody += AddVisitor.getSdivOperation("%v" + this.counter, "%v" + tempNameT, "%v" + tempNameF);
-            mainBody += "\n";
+            mainBodyBuilder.append(AddVisitor.getSdivOperation("%v" + this.counter, "%v" + tempNameT, "%v" + tempNameF));
+            mainBodyBuilder.append("\n");
             return this.counter++;
         }
     }
@@ -251,19 +235,16 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
         if (currFunc != "") {
             Integer localIndex = this.params.get(currFunc).indexOf(varName);
             if (localIndex < 0){
-                // System.out.println("  %l" + this.localCounter + " = load i32, i32* @" + varName);
                 resBuilder.append(AddVisitor.getLoadOperation("  %l" + this.localCounter, varName));
                 resBuilder.append("\n");
             } else {
-                // System.out.println("  %l" + this.localCounter + " = add i32 0, %p" + localIndex);
                 resBuilder.append(AddVisitor.getAddOperation("  %l" + this.localCounter, "0", "%p" + localIndex));
                 resBuilder.append("\n");
             }
 
             return this.localCounter++;
         } else {
-            // mainBody += "%v" + this.counter + " = load i32, i32* @" + varName + "\n";
-            mainBody += AddVisitor.getLoadOperation("%v" + this.counter, varName) + "\n";
+            mainBodyBuilder.append(AddVisitor.getLoadOperation("%v" + this.counter, varName)).append("\n");
             return this.counter++;
         }
     }
@@ -271,13 +252,11 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
     @Override
     public Integer visitExprFNum(GramaticaParser.ExprFNumContext ctx) {
         if (currFunc != "") {
-            // System.out.println("  %l" + this.localCounter + " = add i32 0 ," + ctx.NUM().getText());
             resBuilder.append(AddVisitor.getAddOperation("  %l" + this.localCounter, "0", ctx.NUM().getText()));
             resBuilder.append("\n");
             return this.localCounter++;
         } else {
-            // mainBody += "%v" + this.counter + " = add i32 0, " + ctx.NUM().getText() + "\n";
-            mainBody += AddVisitor.getAddOperation("%v" + this.counter, "0", ctx.NUM().getText()) + "\n";
+            mainBodyBuilder.append(AddVisitor.getAddOperation("%v" + this.counter, "0", ctx.NUM().getText())).append("\n");
             return this.counter++;
         }
     }
@@ -294,12 +273,10 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
                     res += ", i32 %p" + localIndex;
                 } else {
                     if (currFunc != ""){
-                        // System.out.println("  %l"+ localCounter + " = load i32 , i32 * @" + param);
                         resBuilder.append(AddVisitor.getLoadOperation("  %l" + localCounter, param) + "\n");
                         res += ", i32 %l" + localCounter++;
                     } else {
-                        // mainBody += "%v" +  counter + " = load i32 , i32 * @" + param + "\n";
-                        mainBody += AddVisitor.getLoadOperation("%v" + counter, param) + "\n";
+                        mainBodyBuilder.append(AddVisitor.getLoadOperation("%v" + counter, param)).append("\n");
                         res += ", i32 %v" + counter++;
                     }
                 }
@@ -323,7 +300,6 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
             Integer paramCount = visit(ctx.paramsCall());
             String evaluatedParams = evalParamsToString(callParams);
 
-            // System.out.print("  %l" + this.localCounter + " = call i32 @f_" + functionsIds.get(funcName));
             resBuilder.append(AddVisitor.getCallFunc("  %l" + this.localCounter, functionsIds.get(funcName)));
             resBuilder.append("(" + evaluatedParams + ")\n");
             if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
@@ -333,9 +309,8 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
             Integer paramCount = visit(ctx.paramsCall());
             String evaluatedParams = evalParamsToString(callParams);
 
-            // mainBody += "%v" + this.counter + " = call i32 @f_" + functionsIds.get(funcName);
-            mainBody += AddVisitor.getCallFunc("%v" + this.counter, functionsIds.get(funcName));
-            mainBody += "(" + evaluatedParams + ")\n";
+            mainBodyBuilder.append(AddVisitor.getCallFunc("%v" + this.counter, functionsIds.get(funcName)));
+            mainBodyBuilder.append("(" + evaluatedParams + ")\n");
             if (params.get(funcName) != null && params.get(funcName).size() != paramCount)
                 System.out.println("Bad argument count: " + funcName);
             return this.counter++;
@@ -375,7 +350,7 @@ public class AddVisitor extends GramaticaBaseVisitor < Integer > {
     }
 
     private static String getLoadOperation(String varName, String ptrName) {
-        return varName + " = load i32, i32 * @" + ptrName;
+        return varName + " = load i32, i32* @" + ptrName;
     }
 
     private static String getCallFunc(String varName, String funcName) {
