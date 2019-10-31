@@ -18,7 +18,7 @@ SummerVisitor.java
 
 # Lab 4
 *.s
-*.ll
+lab4/*.ll
 *.out
 GramaticaBaseVisitor.java
 GramaticaParser.java
