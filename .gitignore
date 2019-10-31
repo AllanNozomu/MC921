@@ -23,3 +23,5 @@ lab4/*.ll
 GramaticaBaseVisitor.java
 GramaticaParser.java
 GramaticaVisitor.java
+
+.vscode
