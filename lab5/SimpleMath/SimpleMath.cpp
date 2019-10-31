@@ -5,6 +5,7 @@
 #include <string>
 
 using namespace llvm;
+using namespace std;
 
 namespace {
 struct SimpleMath : public FunctionPass {
