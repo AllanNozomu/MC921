@@ -13,9 +13,13 @@ params : ID ',' params # ParamsMulti
     |                  # ParamsNone
     ;
 
-paramsCall : value ',' paramsCall # ParamsCallMulti
-    | value                       # ParamsCallID
+paramsCall : paramValue ',' paramsCall # ParamsCallMulti
+    | paramValue                       # ParamsCallSingle
     |                             # ParamsCallNone
+    ;
+
+paramValue : NUM        # paramValueNum
+    | ID                # paramValueID
     ;
 
 exprE : exprT           # ExprEConversion
@@ -30,11 +34,8 @@ exprT : exprF           # ExprTConversion
 
 exprF : '(' exprE ')'       # ExprFParen
     | ID '(' paramsCall ')' # ExprFFunc
-    | value                 # ExprFVal
-    ;
-
-value : NUM             # ValueNum
-    | ID                # ValueID
+    | NUM                   # ExprFNum
+    | ID                    # ExprFID
     ;
     
 NUM : [0-9]+

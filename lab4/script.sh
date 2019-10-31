@@ -6,21 +6,15 @@ java -jar "antlr-4.7.2-complete.jar" -no-listener -visitor Gramatica.g4
 export CLASSPATH=".:antlr-4.7.2-complete.jar:$CLASSPATH"
 javac *.java
 
-echo "#################################################"
-echo "#              GERANDO AS SAIDAS                #"
-echo "#################################################"
+tstcase=$1
+java MyParser < ${tstcase} > result.ll
+llc result.ll
+gcc Printer.c result.s
+./a.out
 
-i=$1
-java org.antlr.v4.gui.TestRig Gramatica root -tokens < ./tests/test${i}.sm
-java org.antlr.v4.gui.TestRig Gramatica root -gui < ./tests/test${i}.sm > /dev/null &
-
-# for i in $(seq 0 9); do
-    echo "TESTANDO ${i}========================================="
-    java MyParser < tests/test${i}.sm > test${i}.ll
-    llc test${i}.ll
-    gcc Printer.c test${i}.s
-    ./a.out > test${i}.out
-    diff test${i}.out tests/test${i}.res
-    # rm test${i}.out test${i}.ll test${i}.s
-    echo "==================================================="
-# done
+rm ./*.class
+rm ./*.tokens
+rm ./*.interp
+rm ./*.ll
+rm ./*.s
+rm ./*.out
