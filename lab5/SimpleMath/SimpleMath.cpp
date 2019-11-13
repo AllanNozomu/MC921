@@ -17,7 +17,6 @@ std::map<int, int> id_used_where;
 
 std::unordered_map<std::string, int> replaced_constants;
 
-
 namespace {
 struct SimpleMath : public FunctionPass {
   static char ID;
@@ -75,10 +74,6 @@ struct SimpleMath : public FunctionPass {
         ss << *_I;
         id_used_where[instruction_to_index[str]] = instruction_to_index[from];
     }
-    // } else if (isa<ConstantInt>(*op)) {
-    //   ConstantInt *_V = cast<ConstantInt>(op);
-    //   errs() << std::to_string(_V->getSExtValue()) << "\n";
-    // }else errs() << op << "\n";
   }
 
   bool runOnFunction(Function &F) {
@@ -131,11 +126,9 @@ struct SimpleMath : public FunctionPass {
               I.setOperand(1, i32_val);
             }
 
-
             break;
 
           case Instruction::Store:
-          // case Instruction::Load:
             left = I.getOperand(0);
             right = I.getOperand(1);
 
@@ -204,9 +197,6 @@ struct SimpleMath : public FunctionPass {
         int right = key_val.second;
         errs() << "I" << left << ": " << index_to_instruction[left] << " | " << "I" << right << ": " << index_to_instruction[right] << "\n";
       }
-      // for (auto &I : removable_instructions){
-      //   I.eraseFromParent();
-      // }
     }
     return false;
   }
